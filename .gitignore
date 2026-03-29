@@ -6,4 +6,8 @@ __pycache__/
 .DS_Store
 app - *.py
 app-*.py
-*.pdf
+*.pdfcache/X_train.npy
+cache/X_test.npy
+cache/y_train.npy
+cache/y_test.npy
+bgnbd_cache/events_cleaned.parquet
