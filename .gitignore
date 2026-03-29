@@ -1,0 +1,9 @@
+events.csv
+item_properties_part1.csv
+item_properties_part2.csv
+__pycache__/
+*.pyc
+.DS_Store
+app - *.py
+app-*.py
+*.pdf
