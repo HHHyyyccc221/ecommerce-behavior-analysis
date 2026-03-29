@@ -5,9 +5,10 @@ imbalanced-learn>=0.10.0
 lightgbm>=3.3.0
 matplotlib>=3.6.0
 seaborn>=0.12.0
-streamlit
+streamlit==1.41.0
 plotly
 lifetimes
 pyarrow
 requests
-fastparquetaltair
+fastparquet
+altair==4.2.2
