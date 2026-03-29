@@ -10,4 +10,4 @@ plotly
 lifetimes
 pyarrow
 requests
-fastparquet
+fastparquetaltair
