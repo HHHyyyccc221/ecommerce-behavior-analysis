@@ -13,28 +13,31 @@ from preprocess import LAMBDA_DECAY, SESSION_GAP_SEC, clean_events, load_data
 import os
 import requests
 
-def ensure_events_csv(data_dir: str = ".") -> str:
-    local_path = os.path.join(data_dir, "events.csv")
-    if os.path.exists(local_path):
-        return local_path
-    
+def ensure_data_files(data_dir: str = ".") -> None:
     HF_TOKEN = os.environ.get("HF_TOKEN", "")
     HF_REPO  = os.environ.get("HF_REPO", "")
     
-    if not HF_TOKEN or not HF_REPO:
-        raise FileNotFoundError("events.csv not found and HF_TOKEN/HF_REPO not set.")
+    files_to_download = [
+        "events.csv",
+        "item_properties_part1.csv",
+        "item_properties_part2.csv",
+    ]
     
-    url = f"https://huggingface.co/datasets/{HF_REPO}/resolve/main/events.csv"
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    
-    import streamlit as st
-    with st.spinner("Downloading events.csv (first run only, ~90MB)..."):
-        r = requests.get(url, headers=headers, stream=True)
-        r.raise_for_status()
-        with open(local_path, "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
-    return local_path
+    for filename in files_to_download:
+        local_path = os.path.join(data_dir, filename)
+        if os.path.exists(local_path):
+            continue
+        if not HF_TOKEN or not HF_REPO:
+            raise FileNotFoundError(f"{filename} not found and HF_TOKEN/HF_REPO not set.")
+        url = f"https://huggingface.co/datasets/{HF_REPO}/resolve/main/{filename}"
+        headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+        import streamlit as st
+        with st.spinner(f"Downloading {filename} (first run only)..."):
+            r = requests.get(url, headers=headers, stream=True)
+            r.raise_for_status()
+            with open(local_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -692,7 +695,7 @@ def get_item_details(item_id: str, item_to_cat: pd.Series, position_index: int =
 
 @st.cache_data(show_spinner=False)
 def load_events_for_reco_default(data_dir: str = ".") -> pd.DataFrame:
-    ensure_events_csv(data_dir=data_dir)    
+    ensure_data_files(data_dir=data_dir)
     events, _, _ = load_data(data_dir=data_dir)
     events = clean_events(events)
     if "itemid" in events.columns:
@@ -916,7 +919,7 @@ def _render_rec_cards(recs: List[Tuple[str, str, float]], item_to_cat: pd.Series
                 st.caption(explain)
 
 def _load_user_events(visitorid: str, data_dir: str) -> Optional[pd.DataFrame]:
-    ensure_events_csv(data_dir=data_dir)    
+    ensure_data_files(data_dir=data_dir)  
     from preprocess import clean_events as _clean_ev
     events_path = os.path.join(data_dir, "events.csv")
     if not os.path.exists(events_path): return None
