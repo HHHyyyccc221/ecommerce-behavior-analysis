@@ -934,6 +934,7 @@ def _load_user_events(visitorid: str, data_dir: str) -> Optional[pd.DataFrame]:
     return df
 
 def render_reco_module(data_dir: str = ".") -> None:
+    ensure_data_files(data_dir=data_dir)
     st.subheader("Module 3: Smart Recommendation Engine")
 
     cache         = load_reco_cache()
