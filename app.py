@@ -705,33 +705,23 @@ def load_events_for_reco_default(data_dir: str = ".") -> pd.DataFrame:
 
 @st.cache_data(show_spinner=False)
 def load_item_category_latest(data_dir: str = ".") -> pd.Series:
+    cache_path = os.path.join("category_cache", "item_category_map.parquet")
+    if os.path.exists(cache_path):
+        df = pd.read_parquet(cache_path)
+        return df.set_index("itemid")["categoryid"]
+    # fallback: 读原始文件
     p1 = os.path.join(data_dir, "item_properties_part1.csv")
     p2 = os.path.join(data_dir, "item_properties_part2.csv")
     frames = []
     if os.path.exists(p1): frames.append(pd.read_csv(p1, dtype={"itemid": str}))
     if os.path.exists(p2): frames.append(pd.read_csv(p2, dtype={"itemid": str}))
     if not frames: return pd.Series(dtype="object")
-
     props = pd.concat(frames, ignore_index=True)
-    needed = {"itemid", "property", "value"}
-    if not needed.issubset(props.columns): return pd.Series(dtype="object")
-
-    cat = props[props["property"] == "categoryid"][["itemid", "value"] + (["timestamp"] if "timestamp" in props.columns else [])].copy()
-    if cat.empty: return pd.Series(dtype="object")
-
+    cat = props[props["property"] == "categoryid"][["itemid", "value"]].copy()
     cat["itemid"] = cat["itemid"].astype(str)
     cat["value"] = cat["value"].astype(str)
-
-    if "timestamp" in cat.columns:
-        cat["timestamp"] = pd.to_numeric(cat["timestamp"], errors="coerce")
-        cat = cat.dropna(subset=["timestamp"])
-        cat = cat.sort_values("timestamp")
-        cat = cat.drop_duplicates("itemid", keep="last")
-    else:
-        cat = cat.drop_duplicates("itemid", keep="last")
-
-    cat_map = cat.set_index("itemid")["value"].rename("categoryid")
-    return cat_map
+    cat = cat.drop_duplicates("itemid", keep="last")
+    return cat.set_index("itemid")["value"].rename("categoryid")
 
 @st.cache_data(show_spinner=False)
 def build_transition_tables(
