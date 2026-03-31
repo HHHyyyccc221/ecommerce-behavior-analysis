@@ -934,7 +934,6 @@ def _load_user_events(visitorid: str, data_dir: str) -> Optional[pd.DataFrame]:
     return df
 
 def render_reco_module(data_dir: str = ".") -> None:
-    ensure_data_files(data_dir=data_dir)
     st.subheader("Module 3: Smart Recommendation Engine")
 
     cache         = load_reco_cache()
@@ -974,7 +973,8 @@ def render_reco_module(data_dir: str = ".") -> None:
     alpha          = 0.0  if is_basic else 0.25
     gamma          = 0.0  if is_basic else 0.20
     use_time_decay = not is_basic
-
+    with st.spinner("Preparing data files..."):
+        ensure_data_files(data_dir=data_dir)
     item_to_cat = load_item_category_latest(data_dir=data_dir)
 
     if has_transitions:
